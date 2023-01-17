@@ -6,33 +6,29 @@ type Point struct {
 	x, y int
 }
 
-func dijkstra(grid [][]int, cur Point) map[Point]int {
+func dijkstra(graph map[Point][]Point, start Point) map[Point]int {
 
 	// create map of size number of nodes
 	distances := make(map[Point]int)
-	queue := make(map[Point]int)
+	c := make(map[Point]int)
 
 	// initialize each point to inf
-	for y := 0; y < len(grid); y++ {
-		for x := 0; x < len(grid); x++ {
-			distances[Point{x, y}] = math.MaxInt
-			queue[Point{x, y}] = math.MaxInt
-
-			// starting point to 0
-			if x == cur.x && y == cur.y {
-				distances[Point{x, y}] = 0
-				queue[Point{x, y}] = 0
-			}
-		}
+	for k := range graph {
+		distances[k] = math.MaxInt
+		c[k] = math.MaxInt
 	}
 
+	// starting point to 0
+	distances[start] = 0
+	c[start] = 0
+
 	// while c not empty
-	for len(queue) > 0 {
+	for len(c) > 0 {
 
 		// cur = min v
 		var min int = math.MaxInt
 		var cur Point
-		for k := range queue {
+		for k := range c {
 			if distances[k] < min {
 				min = distances[k]
 				cur = k
@@ -40,31 +36,21 @@ func dijkstra(grid [][]int, cur Point) map[Point]int {
 		}
 
 		// remove minPoint from c
-		delete(queue, cur)
+		delete(c, cur)
 
 		// scan each point reachable from current point (cur)
-		for y := -1; y <= 1; y++ {
-			for x := -1; x <= 1; x++ {
-				// do not analyse self
-				if x == 0 && y == 0 {
-					continue
-				}
+		for _, v := range graph[cur] {
+			weight := 1 // weight of move from cur to v
 
-				// point reached from cur
-				v := Point{cur.x + x, cur.y + y}
-
-				weight := 1 // weight of move from cur to v
-
-				// if this path to reach v is less than old path, save this one
-				if (distances[cur] + weight) < distances[v] {
-					distances[v] = distances[cur] + weight
-				}
+			// if this path to reach v is less than old path, save this one
+			if (distances[cur] + weight) < distances[v] {
+				distances[v] = distances[cur] + weight
 			}
 		}
 
 		// ignore unreachable nodes
 		unreachable := true
-		for cLeft := range queue {
+		for cLeft := range c {
 			if distances[cLeft] != math.MaxInt {
 				unreachable = false
 			}
@@ -72,6 +58,7 @@ func dijkstra(grid [][]int, cur Point) map[Point]int {
 		if unreachable {
 			break
 		}
+
 	}
 	return distances
 }

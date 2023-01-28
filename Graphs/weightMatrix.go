@@ -9,7 +9,7 @@ func newGraph() graph {
 	return g
 }
 
-func (g graph) addEdge(v1, v2 string, weight int) {
+func (g graph) addUndirectedEdge(v1, v2 string, weight int) {
 	if g.map_[v1] == nil {
 		g.map_[v1] = make(map[string]int)
 	}
@@ -21,9 +21,21 @@ func (g graph) addEdge(v1, v2 string, weight int) {
 	g.map_[v2][v1] = weight
 }
 
-func (g graph) removeEdge(v1, v2 string) {
+func (g graph) addDirectedEdge(v1, v2 string, weight int) {
+	if g.map_[v1] == nil {
+		g.map_[v1] = make(map[string]int)
+	}
+
+	g.map_[v1][v2] = weight
+}
+
+func (g graph) removeUndirectedEdge(v1, v2 string) {
 	delete(g.map_[v1], v2)
 	delete(g.map_[v2], v1)
+}
+
+func (g graph) removeDirectedEdge(v1, v2 string) {
+	delete(g.map_[v1], v2)
 }
 
 func depthFirstSearch(g graph, start string, reached map[string]bool) {
@@ -52,15 +64,25 @@ func hasCycle(g graph, start, last string, reached map[string]bool) bool {
 }
 
 func main() {
-	g := newGraph()
-	g.addEdge("a", "b", 3)
-	g.addEdge("a", "c", 2)
-	g.addEdge("b", "c", 4)
-	g.addEdge("b", "f", 5)
-	g.addEdge("c", "f", 5)
-	g.addEdge("b", "d", 6)
-	g.addEdge("d", "e", 6)
-	g.addEdge("f", "e", 1)
+	dg := newGraph()
+	dg.addDirectedEdge("a", "b", 3)
+	dg.addDirectedEdge("a", "c", 2)
+	dg.addDirectedEdge("b", "c", 4)
+	dg.addDirectedEdge("c", "e", 5)
+	dg.addDirectedEdge("d", "b", 6)
+	dg.addDirectedEdge("f", "d", 6)
+	dg.addDirectedEdge("e", "f", 1)
 
-	depthFirstSearch(g, "a", make(map[string]bool))
+	depthFirstSearch(dg, "a", make(map[string]bool))
+
+	ug := newGraph()
+	ug.addUndirectedEdge("a", "b", 3)
+	ug.addUndirectedEdge("a", "c", 2)
+	ug.addUndirectedEdge("b", "c", 4)
+	ug.addUndirectedEdge("c", "e", 5)
+	ug.addUndirectedEdge("d", "b", 6)
+	ug.addUndirectedEdge("f", "d", 6)
+	ug.addUndirectedEdge("e", "f", 1)
+
+	depthFirstSearch(ug, "a", make(map[string]bool))
 }

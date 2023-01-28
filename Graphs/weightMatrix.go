@@ -59,7 +59,7 @@ func main() {
 	g.addEdge("b", "f", 5)
 	g.addEdge("c", "f", 5)
 	g.addEdge("b", "d", 6)
-	g.addEdge("b", "e", 6)
+	g.addEdge("d", "e", 6)
 	g.addEdge("f", "e", 1)
 
 	depthFirstSearch(g, "a", make(map[string]bool))

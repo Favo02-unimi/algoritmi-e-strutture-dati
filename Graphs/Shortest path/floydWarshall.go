@@ -4,6 +4,8 @@ import (
 	"fmt"
 )
 
+const INF = 100000
+
 type graph struct {
 	map_ map[string]map[string]int
 }
@@ -25,6 +27,7 @@ func (g graph) addEdge(v1, v2 string, weight int) {
 	g.map_[v2][v1] = weight
 }
 
+// works with negative weight, not with negative cycle
 func floydWarshall(g graph) map[string]map[string]int {
 	dist := make(map[string]map[string]int)
 
@@ -40,7 +43,7 @@ func floydWarshall(g graph) map[string]map[string]int {
 			} else if reachable {
 				dist[i][j] = weight
 			} else {
-				dist[i][j] = 100000 // inf
+				dist[i][j] = INF
 			}
 		}
 	}
@@ -53,7 +56,6 @@ func floydWarshall(g graph) map[string]map[string]int {
 				if dist[i][k]+dist[k][j] < dist[i][j] {
 					dist[i][j] = dist[i][k] + dist[k][j] // save this path
 				}
-				fmt.Println()
 			}
 		}
 	}

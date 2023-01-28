@@ -6,35 +6,6 @@ import (
 
 const INF = 100000
 
-type graph struct {
-	map_ map[string]map[string]int
-}
-
-func newGraph() graph {
-	var g graph = graph{make(map[string]map[string]int)}
-	return g
-}
-
-func (g graph) addUndirectedEdge(v1, v2 string, weight int) {
-	if g.map_[v1] == nil {
-		g.map_[v1] = make(map[string]int)
-	}
-	if g.map_[v2] == nil {
-		g.map_[v2] = make(map[string]int)
-	}
-
-	g.map_[v1][v2] = weight
-	g.map_[v2][v1] = weight
-}
-
-func (g graph) addDirectedEdge(v1, v2 string, weight int) {
-	if g.map_[v1] == nil {
-		g.map_[v1] = make(map[string]int)
-	}
-
-	g.map_[v1][v2] = weight
-}
-
 // does not works with negative weights
 func dijkstra(g graph, start string) map[string]int {
 
@@ -92,15 +63,57 @@ func dijkstra(g graph, start string) map[string]int {
 }
 
 func main() {
-	g := newGraph()
-	g.addDirectedEdge("a", "b", 3)
-	g.addDirectedEdge("a", "c", 2)
-	g.addDirectedEdge("b", "c", 4)
-	g.addDirectedEdge("c", "e", 5)
-	g.addDirectedEdge("d", "b", 6)
-	g.addDirectedEdge("f", "d", 6)
-	g.addDirectedEdge("e", "f", 1)
+	dg := newGraph()
+	dg.addDirectedEdge("a", "b", 3)
+	dg.addDirectedEdge("a", "c", 2)
+	dg.addDirectedEdge("b", "c", 4)
+	dg.addDirectedEdge("c", "e", 5)
+	dg.addDirectedEdge("d", "b", 6)
+	dg.addDirectedEdge("f", "d", 6)
+	dg.addDirectedEdge("e", "f", 1)
 
-	dist := dijkstra(g, "f")
-	fmt.Println(dist)
+	distdg := dijkstra(dg, "f")
+	fmt.Println(distdg)
+
+	ug := newGraph()
+	ug.addUndirectedEdge("a", "b", 3)
+	ug.addUndirectedEdge("a", "c", 2)
+	ug.addUndirectedEdge("b", "c", 4)
+	ug.addUndirectedEdge("c", "e", 5)
+	ug.addUndirectedEdge("d", "b", 6)
+	ug.addUndirectedEdge("f", "d", 6)
+	ug.addUndirectedEdge("e", "f", 1)
+
+	distug := dijkstra(ug, "f")
+	fmt.Println(distug)
+}
+
+// GRAPH
+type graph struct {
+	map_ map[string]map[string]int
+}
+
+func newGraph() graph {
+	var g graph = graph{make(map[string]map[string]int)}
+	return g
+}
+
+func (g graph) addUndirectedEdge(v1, v2 string, weight int) {
+	if g.map_[v1] == nil {
+		g.map_[v1] = make(map[string]int)
+	}
+	if g.map_[v2] == nil {
+		g.map_[v2] = make(map[string]int)
+	}
+
+	g.map_[v1][v2] = weight
+	g.map_[v2][v1] = weight
+}
+
+func (g graph) addDirectedEdge(v1, v2 string, weight int) {
+	if g.map_[v1] == nil {
+		g.map_[v1] = make(map[string]int)
+	}
+
+	g.map_[v1][v2] = weight
 }

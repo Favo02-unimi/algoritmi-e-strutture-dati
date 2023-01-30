@@ -5,66 +5,91 @@ import (
 	"sort"
 )
 
-// graph as weightMatrix
-type graph struct {
-	map_ map[string]map[string]int
-}
+// kruskal with sets implemented as maps: theta(V) + theta(E) + O(E log E) + O(E)*O(1)*O(V) = O(E log E)
+func kruskal(g graph, start string) graph {
 
-// weighted edge
-type wedge struct {
-	v1, v2 string
-	weight int
-}
+	// each point to parent set (or nil if own set)
+	sets := make(map[string]*string)
 
-func kruskal(g graph) graph {
-	// save edges of graph in a set (no duplicates)
-	edgesSet := make(map[wedge]bool)
-	for v1, m := range g.map_ {
-		for v2, w := range m {
-			e1 := wedge{v1, v2, w}
-			e2 := wedge{v2, v1, w}
-			if !(edgesSet[e1] || edgesSet[e2]) {
-				edgesSet[e1] = true
-			}
+	// each point in his own set (parent set = nothing)
+	for v := range g.map_ {
+		sets[v] = nil
+	}
+
+	// list of edges
+	edges := make([]wedge, 0, len(g.map_)) // intialize the underlying array to at least the number of nodes of the graph
+	for a, m := range g.map_ {
+		for b, weight := range m {
+			edges = append(edges, wedge{a, b, weight})
 		}
 	}
-	// convert set to list
-	edgesList := make([]wedge, 0, len(g.map_))
-	for k := range edgesSet {
-		edgesList = append(edgesList, k)
-	}
 
-	// sort list
-	sort.Slice(edgesList, func(i, j int) bool {
-		return edgesList[i].weight < edgesList[j].weight
+	// sort edges
+	sort.Slice(edges, func(a, b int) bool {
+		return edges[a].weight < edges[b].weight
 	})
 
+	// initialize spanning tree
 	spanning := newGraph()
-	// scan each edge in list (starting from smallest weight)
-	for _, e := range edgesList {
-		// spanning tree has all nodes
+
+	// scan edges, starting from shortest one
+	for _, edge := range edges {
+		// spanning tree formed, stop
 		if len(spanning.map_) == len(g.map_) {
 			break
 		}
 
-		// add edge to spanning
-		spanning.addEdge(e.v1, e.v2, e.weight)
-		// if form cycle, remove it
-		if hasCycle(spanning, e.v1, e.v1, make(map[string]bool)) {
-			spanning.removeEdge(e.v1, e.v2)
+		// check if edge forms cycle checking sets
+		setStart := findSet(sets, edge.v1)
+		setEnd := findSet(sets, edge.v2)
+		// no cycle, add edge
+		if setStart != setEnd {
+			spanning.addUndirectedEdge(edge.v1, edge.v2, edge.weight)
+			// union of sets
+			sets[setEnd] = &setStart
 		}
 	}
 
 	return spanning
 }
 
+func findSet(sets map[string]*string, key string) string {
+	if sets[key] == nil {
+		return key
+	}
+	return findSet(sets, *sets[key])
+}
+
+func main() {
+	ug := newGraph()
+	ug.addUndirectedEdge("a", "b", 3)
+	ug.addUndirectedEdge("a", "c", 2)
+	ug.addUndirectedEdge("b", "c", 4)
+	ug.addUndirectedEdge("c", "e", 5)
+	ug.addUndirectedEdge("d", "b", 6)
+	ug.addUndirectedEdge("f", "d", 6)
+	ug.addUndirectedEdge("e", "f", 1)
+
+	distug := kruskal(ug, "f")
+	fmt.Println(distug)
+}
+
 // GRAPH
+type wedge struct {
+	v1, v2 string
+	weight int
+}
+
+type graph struct {
+	map_ map[string]map[string]int
+}
+
 func newGraph() graph {
 	var g graph = graph{make(map[string]map[string]int)}
 	return g
 }
 
-func (g graph) addEdge(v1, v2 string, weight int) {
+func (g graph) addUndirectedEdge(v1, v2 string, weight int) {
 	if g.map_[v1] == nil {
 		g.map_[v1] = make(map[string]int)
 	}
@@ -76,37 +101,10 @@ func (g graph) addEdge(v1, v2 string, weight int) {
 	g.map_[v2][v1] = weight
 }
 
-func (g graph) removeEdge(v1, v2 string) {
-	delete(g.map_[v1], v2)
-	delete(g.map_[v2], v1)
-}
-
-func hasCycle(g graph, start, last string, reached map[string]bool) bool {
-	reached[start] = true
-	for v := range g.map_[start] {
-		if !reached[v] {
-			if hasCycle(g, v, start, reached) {
-				return true
-			}
-		} else {
-			if v != last {
-				return true
-			}
-		}
+func (g graph) addDirectedEdge(v1, v2 string, weight int) {
+	if g.map_[v1] == nil {
+		g.map_[v1] = make(map[string]int)
 	}
-	return false
-}
 
-func main() {
-	g := newGraph()
-	g.addEdge("a", "b", 3)
-	g.addEdge("a", "c", 2)
-	g.addEdge("b", "c", 4)
-	g.addEdge("b", "f", 5)
-	g.addEdge("c", "f", 5)
-	g.addEdge("b", "d", 6)
-	g.addEdge("d", "e", 6)
-	g.addEdge("f", "e", 1)
-
-	fmt.Println(kruskal(g))
+	g.map_[v1][v2] = weight
 }

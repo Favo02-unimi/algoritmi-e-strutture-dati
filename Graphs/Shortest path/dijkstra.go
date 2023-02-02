@@ -10,33 +10,34 @@ const INF = 100000
 func dijkstra(g graph, start string) map[string]int {
 
 	dist := make(map[string]int)
-	notLocked := make(map[string]bool) // should be a minheap
+	queue := make([]string, 0, len(g.map_)) // should be a minheap
 
-	// initialize each point to inf
+	// initialize each distance to inf, add all to queue
 	for k := range g.map_ {
 		dist[k] = INF
-		notLocked[k] = true
+		queue = append(queue, k)
 	}
 
 	// starting point to 0
 	dist[start] = 0
 
 	// while notLocked not empty
-	for len(notLocked) > 0 {
+	for len(queue) > 0 {
 
-		// cur = min distance in notLocked
+		// cur = element extracted from queue
 		// should be a minheap, so extract the min from the heap
-		var min int = INF
-		var cur string
-		for k := range notLocked {
-			if dist[k] < min {
-				min = dist[k]
+		var cur string = queue[0]
+		var curI = 0
+		for i, k := range queue {
+			if dist[k] < dist[cur] {
 				cur = k
+				curI = i
 			}
 		}
 
-		// remove minPoint from notLocked
-		delete(notLocked, cur)
+		// remove element extracted from queue
+		// should be a minheap, so extract will remove
+		queue = append(queue[:curI], queue[curI+1:]...)
 
 		// scan each point reachable from current point (cur)
 		for v, weight := range g.map_[cur] {
@@ -48,7 +49,7 @@ func dijkstra(g graph, start string) map[string]int {
 
 		// ignore unreachable nodes
 		unreachable := true
-		for k := range notLocked {
+		for _, k := range queue {
 			if dist[k] != INF {
 				unreachable = false
 			}

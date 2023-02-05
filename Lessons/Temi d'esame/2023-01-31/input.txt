@@ -1,0 +1,5 @@
+frigorifero: tazza * tavolo
+tazza: 2
+tavolo: cassetto - valigia
+cassetto: 5
+valigia: 3

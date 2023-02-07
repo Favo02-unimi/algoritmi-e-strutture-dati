@@ -1,0 +1,15 @@
+s S0 1
+s S1 1
+s S2 1
+s S3 100
+s S4 1
+s S5 99
+s S6 2
+s S7 2
+c S0 S1
+c S1 S2
+c S1 S3
+c S1 S4
+c S3 S5
+c S3 S6
+c S3 S7

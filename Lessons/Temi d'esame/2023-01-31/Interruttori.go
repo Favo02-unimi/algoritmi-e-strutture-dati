@@ -39,14 +39,18 @@ func main() {
 
 		case "x":
 			t := make([]bool, len(p.cur.interruttori))
-			target := &stato{t}
+			target := stato{t}
 
-			dist := p.numeroSpegniTutto(*target)
-			for st, di := range dist {
-				fmt.Println(st.toString(), di)
+			dist, paths := p.numeroSpegniTutto()
+			fmt.Println("distanza a", target.toString(), ":", dist[target.toString()])
+
+			path := ricostruisciPath(p.cur, target, paths)
+
+			cur := p.cur
+			for i := len(path) - 1; i >= 0; i-- {
+				cur = cur.premiInterruttore(path[i])
+				fmt.Println("premi", path[i], ":", cur.toString())
 			}
-
-			fmt.Println(dist[target])
 
 		case "f":
 			return
@@ -59,8 +63,7 @@ func main() {
 // PULSANTI
 
 type pulsanti struct {
-	cur   stato
-	grafo map[*stato]map[*stato]int // lista di adiacenza, ogni stato punta agli stati che può raggiungere. ad ogni arco è anche collegato il numero di interruttore da premere per ottenere quella transizione
+	cur stato
 }
 
 // l'operatore % di go si comporta in modo "strano" sui moduli di numeri negativi, quindi non va bene per lista circolare
@@ -68,49 +71,41 @@ func mod(a, b int) int {
 	return (a%b + b) % b
 }
 
+// inizializza "numeri" pulsanti tutti spenti
 func inizializzaPulsantiSpenti(numero int) pulsanti {
 	// creazione spenti
 	interruttori := make([]bool, numero)
 	s := stato{interruttori}
 
-	grafo := make(map[*stato]map[*stato]int)
-	grafo[&s] = make(map[*stato]int)
-
-	return pulsanti{s, grafo}
+	return pulsanti{s}
 }
 
+// inizializza len(p) pulsanti impostati allo stato della stringa p (composta da 0 e 1)
 func inizializzaPulsanti(p string) pulsanti {
 	s := fromString(p)
 
 	grafo := make(map[*stato]map[*stato]int)
 	grafo[&s] = make(map[*stato]int)
 
-	return pulsanti{s, grafo}
+	return pulsanti{s}
 }
 
+// modifica e restituisce i pulsanti premendo il pulsante "numeroInterruttore"
 func (p *pulsanti) premiInterruttore(numeroInterruttore int) pulsanti {
 	newStato := p.cur.premiInterruttore(numeroInterruttore)
-
-	if p.grafo[&p.cur] == nil {
-		p.grafo[&p.cur] = make(map[*stato]int)
-	}
-	p.grafo[&p.cur][&newStato] = numeroInterruttore
-
-	if p.grafo[&newStato] == nil {
-		p.grafo[&newStato] = make(map[*stato]int)
-	}
-	p.grafo[&newStato][&p.cur] = numeroInterruttore
-
 	p.cur = newStato
 
 	return *p
 }
 
-func (p pulsanti) numeroSpegniTutto(target stato) map[*stato]int {
-	dist := make(map[*stato]int)
+// restituisce il numero di pulsanti da premere per raggiungere qualsiasi stato di pulsanti
+func (p pulsanti) numeroSpegniTutto() (map[string]int, map[string]int) {
+	dist := make(map[string]int) // distanza da stato curr di p ad ogni stato raggiungibile
+	last := make(map[string]int) // stato da cui si arriva per ogni possibile stato (precedente)
+
 	queue := make([]*stato, 0, 1)
 
-	dist[&p.cur] = 0
+	dist[p.cur.toString()] = 0
 
 	queue = append(queue, &p.cur)
 
@@ -118,41 +113,44 @@ func (p pulsanti) numeroSpegniTutto(target stato) map[*stato]int {
 		c := queue[0]
 		queue = queue[1:]
 
-		p.generaStati(c)
+		raggiungibili := p.generaStati(c)
 
-		for s := range p.grafo[c] {
-			if _, found := dist[s]; !found {
-				dist[s] = dist[c] + 1
-				queue = append(queue, s)
-			}
-
-			if s.toString() == target.toString() { // target found
-				return dist
+		for st, int := range raggiungibili {
+			if _, found := dist[st.toString()]; !found {
+				dist[st.toString()] = dist[c.toString()] + 1
+				last[st.toString()] = int
+				queue = append(queue, st)
 			}
 		}
 	}
 
-	return dist
+	return dist, last
 }
 
-func (p *pulsanti) generaStati(cur *stato) pulsanti {
+func (p *pulsanti) generaStati(cur *stato) map[*stato]int {
 	var LEN = len(p.cur.interruttori)
+	raggiungibili := make(map[*stato]int)
 
 	for i := 1; i <= LEN; i++ {
 		s := cur.premiInterruttore(i)
-
-		if p.grafo[cur] == nil {
-			p.grafo[cur] = make(map[*stato]int)
-		}
-		p.grafo[cur][&s] = i
-
-		if p.grafo[&s] == nil {
-			p.grafo[&s] = make(map[*stato]int)
-		}
-		p.grafo[&s][cur] = i
+		raggiungibili[&s] = i
 	}
 
-	return *p
+	return raggiungibili
+}
+
+func ricostruisciPath(start, end stato, paths map[string]int) []int {
+	path := make([]int, 0)
+
+	curNode := end
+	for curNode.toString() != start.toString() {
+		intPremuto := paths[curNode.toString()]
+
+		path = append(path, intPremuto)
+		curNode = curNode.premiInterruttore(intPremuto)
+	}
+
+	return path
 }
 
 // STATO

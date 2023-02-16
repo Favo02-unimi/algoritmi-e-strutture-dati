@@ -1,0 +1,3 @@
+Linea 1: Lima, Venezia, Palestro, San Babila, Duomo, Cadorna.
+Linea 2: Sant'Ambrogio, Cadorna, Lanza, Moscova.
+Linea 3: Sondrio, Centrale, Cadorna, Repubblica.
